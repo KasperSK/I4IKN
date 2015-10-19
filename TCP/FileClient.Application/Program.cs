@@ -12,7 +12,7 @@ namespace FileClient.Application
         {
             FileClient hat = new FileClient(args);
             hat.Run();
-            hat.SendRequest(hat.ConstructRequest());
+/*            hat.SendRequest(hat.ConstructRequest());
             var response = hat.ParseString(hat.GetResponce());
             foreach (var str in response)
             {
@@ -33,7 +33,7 @@ namespace FileClient.Application
             else
             {
                 Console.WriteLine("No match :/");
-            }
+            }*/
             Console.ReadKey();
         }
     }

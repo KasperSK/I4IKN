@@ -21,6 +21,7 @@ namespace FileClient
         private const int Buffer = 1000;
         private const int Port = 9000;
         private string _filePath;
+        private byte[] defaultIP = {192, 168, 135, 133};
         private IPAddress _clientAddress;
         private bool running;
 
@@ -35,8 +36,20 @@ namespace FileClient
             catch(Exception e)
             {
                 Console.WriteLine("You did not specify a valid IP adress: Exeption " + e.Message + " was thrown");
+                _clientAddress = new IPAddress(defaultIP);
             }
-            _filePath = args[1];
+            if(args[1] != null)
+                _filePath = args[1];
+            running = false;
+        }
+
+        public void Close()
+        {
+            _tcpClient.Close();
+        }
+
+        public void Connect()
+        {
             try
             {
                 _tcpClient.Connect(_clientAddress, Port);
@@ -46,7 +59,6 @@ namespace FileClient
                 Console.WriteLine("The connection could not be established: " + e.Message);
                 Environment.Exit(1);
             }
-            running = false;
         }
 
         public void SendRequest(string request)
@@ -113,6 +125,8 @@ namespace FileClient
             var stream = GetStream();
             var fileBytes = new byte[Buffer];
             int bytesToRead = Buffer;
+            if(System.IO.File.Exists(path))
+                System.IO.File.Delete(path);
             var file = System.IO.File.OpenWrite(path);
             while (lenght > 0)
             {
@@ -126,6 +140,7 @@ namespace FileClient
                 }
             }
             file.Close();
+           
         }
 
         public string CalculateSha1(string path)
@@ -190,52 +205,107 @@ namespace FileClient
         {
             Console.Clear();
             Console.WriteLine("Welcome to the file client" + Version);
-            Console.WriteLine("Enter a file name:");
+            Console.WriteLine("Server IP: " + _clientAddress.ToString());
+            Console.WriteLine("File: " + _filePath);
+            Console.WriteLine("\r\n");
+            Console.WriteLine("What would you like to do?");
+            Console.WriteLine("1. Request file");
+            Console.WriteLine("2. Change file to request");
+            Console.WriteLine("3. Change server IP");
+            Console.WriteLine("Press Q to quit");
+            Console.WriteLine("\r\n");
         }
 
         public void GetFilePath()
         {
+            Console.WriteLine("Please input new file path");
             var path = Console.ReadLine();
             _filePath = path;
+        }
+
+        public string ParseResponse(string responseString)
+        {
+            var response = ParseString(responseString);
+            switch (response[1])
+            {
+                case "200":
+                    var getSize = 0;
+                    int.TryParse(response[6], out getSize);
+                    GetBigFile(getSize, "tophat.jpg");
+                    return response[4];
+                case "404":
+                    Console.WriteLine(response[0] + " " + response[1] + " " + response[3]);
+                    return null;
+                default:
+                    return null;
+            }
+            
+        }
+
+        public void CheckSha1(string serverSha)
+        {
+            var sha = CalculateSha1("tophat.jpg");
+            if (sha == serverSha)
+            {
+                Console.WriteLine("File recieved");
+                Console.WriteLine("Recived sha: \t" + serverSha);
+                Console.WriteLine("Calculated sha: \t" + sha);
+                running = false;
+            }
+        }
+
+        public void ChangeIP()
+        {
+            Close();
+            Console.WriteLine("Please input a new IP adresse in IPv4 format");
+            var ip = Console.ReadLine();
+            try
+            {
+                _clientAddress = IPAddress.Parse(ip);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("You did not specify a valid IP adress: Exeption " + e.Message + " was thrown" + " Using dafault IP");
+                _clientAddress = new IPAddress(defaultIP); 
+            }
+            Connect();
         }
 
         public void Run()
         {
             running = true;
+            Connect();
             while (running)
             {
                 DrawDisplay();
-                GetFilePath();
-                SendRequest(ConstructRequest());
-                var response = ParseString(GetResponce());
-            /*    foreach (var str in response)
-                {
-                    Console.WriteLine(str);
-                }
-                Console.ReadKey();*/
-                switch (response[1])
-                {
-                    case "200":
-                        var getSize = 0;
-                        int.TryParse(response[6], out getSize);
-                        GetBigFile(getSize, "tophat.jpg");
-                        break;
-                    case "404":
-                        Console.WriteLine(response[0]+ " " + response[1] + " " + response[3]);
-                        break;
-
-                }
-                var sha = CalculateSha1("tophat.jpg");
-                if (sha == response[4])
-                {
-                    Console.WriteLine("File recieved");
-                    running = false;
-                }
-                char quit;
                 var input = Console.ReadKey(false);
+                switch (input.KeyChar)
+                {
+                    case '1':
+                        SendRequest(ConstructRequest());
+                        var shaFromServer = ParseResponse(GetResponce());
+                        if (shaFromServer != null)
+                        {
+                            CheckSha1(shaFromServer);
+                        }
+                        break;
+                    case '2':
+                        GetFilePath();
+                        break;
+                    case '3':
+                        ChangeIP();
+                        break;
+                    default:
+                        Console.WriteLine("Default");
+                        DrawDisplay();
+                        break;
+                }
+
+
                 if (input.KeyChar == 'q' || input.KeyChar == 'Q')
                     running = false;
             }
+            Close();
         }
     }
 }
