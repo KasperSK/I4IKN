@@ -89,11 +89,13 @@ namespace UDPSrv
                 case 'U':
                     responseSocket.SendTo(Encoding.UTF8.GetBytes(uRequest), uRequest.Length, SocketFlags.None, _remote);
                     var U = HandleFile(uRequest);
+                    responseSocket.SendTo(U, U.Length, SocketFlags.None, _remote);
                     break;
                 case 'l':
                 case 'L':
                     responseSocket.SendTo(Encoding.UTF8.GetBytes(lRequest), lRequest.Length, SocketFlags.None, _remote);
                     var L = HandleFile(lRequest);
+                    responseSocket.SendTo(L, L.Length, SocketFlags.None, _remote);
                     break;
                 default:
                     responseSocket.SendTo(Encoding.UTF8.GetBytes(badRequest), badRequest.Length, SocketFlags.None, _remote);
@@ -103,13 +105,9 @@ namespace UDPSrv
 
         private byte[] HandleFile(string filePath)
         {
-            var answer = File.OpenRead(filePath);
-            var Content = new BinaryReader(answer).ReadBytes((int)answer.Length);
-            foreach (var Byte in Content)
-            {
-                Console.Write($"{Byte}");
-            }
-            return Content;
+            var answer = File.ReadAllText(filePath);
+            var byteSnask = Encoding.UTF8.GetBytes(answer);
+            return byteSnask;
         }
     }
 }
