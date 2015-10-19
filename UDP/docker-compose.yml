@@ -1,0 +1,8 @@
+client:
+  image: threadx/dev-tools:latest
+
+  volumes:
+    - ./src:/src
+
+  entrypoint: /bin/bash
+  command:
