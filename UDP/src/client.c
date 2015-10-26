@@ -8,58 +8,29 @@
 #include <netdb.h>
 #include <unistd.h>
 
-#define BUF_SIZE 1024
+#define BUFFER_SIZE 1024
+#define PORT 9999
 
 int main(int argc, char *argv[]) {
-    struct sockaddr_in server;
+    struct sockaddr_in udpserv;
     int len = sizeof(struct sockaddr_in);
-    char buf[BUF_SIZE];
+    char buf[BUFFER_SIZE];
     struct hostent *host;
-    int n, s, port;
+    int n, s;
 
-    if (argc < 4) {
-	fprintf(stderr, "Usage: %s <host> <port> <message>\n", argv[0]);
-	return 1;
-    }
-
-    host = gethostbyname(argv[1]);
-    if (host == NULL) {
-	perror("gethostbyname");
-	return 1;
-    }
-
-    port = atoi(argv[2]);
-
-    /* initialize socket */
-    if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) {
-	perror("socket");
-	return 1;
-    }
-
-    /* initialize server addr */
-    memset((char *) &server, 0, sizeof(struct sockaddr_in));
-    server.sin_family = AF_INET;
-    server.sin_port = htons(port);
-    server.sin_addr = *((struct in_addr*) host->h_addr);
-
-    /* send message */
-    if (sendto(s, argv[3], strlen(argv[3]), 0, (struct sockaddr *) &server, len) == -1) {
-	perror("sendto()");
-	return 1;
-    }
-
-    /* receive echo.
-    ** for single message, "while" is not necessary. But it allows the client 
-    ** to stay in listen mode and thus function as a "server" - allowing it to 
-    ** receive message sent from any endpoint.
-    */
-    while ((n = recvfrom(s, buf, BUF_SIZE, 0, (struct sockaddr *) &server, &len)) != -1) {
-	printf("Received from %s:%d: ", 
-		inet_ntoa(server.sin_addr), 
-		ntohs(server.sin_port)); 
-	fflush(stdout);
-	write(1, buf, n);
-	write(1, "\n", 1);
+    s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)
+	
+    memset((char *) &udpserv, 0, len);
+    udpserv.sin_family = AF_INET;
+    udpserv.sin_port = htons(PORT);
+    udpserv.sin_addr = *((struct in_addr*) host->h_addr);
+    sendto(s, argv[3], strlen(argv[3]), 0, (struct sockaddr *) &udpserv, len)
+	
+    while ((n = recvfrom(s, buf, BUFFER_SIZE, 0, (struct sockaddr *) &udpserv, &len)) != -1) {
+		printf("Modtaget %s:%d: ", inet_ntoa(udpserv.sin_addr), ntohs(udpserv.sin_port)); 
+		fflush(stdout);
+		write(1, buf, n);
+		write(1, "\n", 1);
     }
 
     close(s);
