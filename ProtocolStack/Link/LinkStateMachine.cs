@@ -1,40 +1,46 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO.Ports;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO.Ports;
 
 namespace Link
 {
-    public class LinkStates
+    public abstract class LinkStates
     {
         public virtual void OnEnter(LinkStateMachine context)
         {
             
         }
 
+        public virtual void ReceivedByte(LinkStateMachine context, byte b)
+        {
+            
+        }
+
+        public virtual void BufferCount(LinkStateMachine context)
+        {
+            
+        }
+
+        public virtual void SentByte(LinkStateMachine context)
+        {
+
+        }
+
         public virtual void SendMsg(LinkStateMachine context, byte[] msg)
         {
-            
+
         }
 
-        public virtual void GetByte(LinkStateMachine context)
+        public virtual byte[] ReceiveMsg(LinkStateMachine context)
         {
-            
+            return null;
         }
 
-        public virtual void GetCount(LinkStateMachine context)
-        {
-            
-        }
     }
 
     public class Idle : LinkStates
     {
         public override void SendMsg(LinkStateMachine context, byte[] msg)
         {
-            context.SendingBuffer = msg;
+            context.SetBuffer(msg);
             context.SetState(new MoreToSend());
         }
     }
@@ -67,48 +73,69 @@ namespace Link
         
     }
 
-    public class LinkStateMachine
+    public class LinkStateMachine : ILinkFrontend
     {
         private LinkStates _state;
-        public SerialPort Port { get; private set; }
+        private readonly SerialPort _port;
 
         public LinkStateMachine(string portName)
         {
-            Port = new SerialPort(portName, 115200, Parity.None, 8, StopBits.One);
-            if(!Port.IsOpen)
-                Port.Open();
+            _state = new Idle();
+            _port = new SerialPort(portName,115200,Parity.None,8,StopBits.One);
+            _port.Open();
         }
 
         public void SetState(LinkStates state)
         {
             _state = state;
+            _state.OnEnter(this);
         }
 
-        public byte[] ReceivingBuffer { get; set; }
-        public byte[] SendingBuffer { get; set; }
+        private byte[] Buffer { get; set; }
 
-
-
-        public void SendMsg(byte[] msg)
+        public void SendMessage(byte[] msg)
         {
             _state.SendMsg(this, msg);
-        } 
+        }
 
-        public int GetCount()
+        public byte[] GetMessage()
+        {
+            return _state.ReceiveMsg(this);
+        }
+
+
+        public int BufferSize()
+        {
+            return 0;
+        }
+
+        public byte GetFrontBufferByte()
+        {
+            return 0;
+        }
+
+        public void SetBackBufferByte(byte b)
         {
             
         }
 
-        public byte[] ReceiveMsg()
+        public void SendByte(byte s)
         {
-            // To do write code
-            return ReceivingBuffer;
+
         }
 
-        public void SendByte(byte[] msg)
+        public byte GetByte()
         {
-            
+            return 0;
         }
+
+        public void SetBuffer(byte[] bytes)
+        {
+            Buffer = bytes;
+        }
+
+        
+        
     }
 
   
