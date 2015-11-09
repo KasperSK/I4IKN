@@ -1,8 +1,9 @@
 ﻿using System.IO.Ports;
+using Link.LinkStates;
 
 namespace Link
 {
-    public abstract class LinkStates
+    public abstract class LinkState
     {
         public virtual void OnEnter(LinkStateMachine context)
         {
@@ -36,46 +37,9 @@ namespace Link
 
     }
 
-    public class Idle : LinkStates
-    {
-        public override void SendMsg(LinkStateMachine context, byte[] msg)
-        {
-            context.SetBuffer(msg);
-            context.SetState(new MoreToSend());
-        }
-    }
-
-    public class MoreToSend : LinkStates
-    {
-        public override void OnEnter(LinkStateMachine context)
-        {
-
-        }
-    }
-
-    public class Sending : LinkStates
-    {
-        
-    }
-
-    public class WaitForA : LinkStates
-    {
-        
-    }
-
-    public class Receiving : LinkStates
-    {
-        
-    }
-
-    public class BState : LinkStates
-    {
-        
-    }
-
     public class LinkStateMachine : ILinkFrontend
     {
-        private LinkStates _state;
+        private LinkState _state;
         private readonly SerialPort _port;
 
         public LinkStateMachine(string portName)
@@ -85,7 +49,7 @@ namespace Link
             _port.Open();
         }
 
-        public void SetState(LinkStates state)
+        public void SetState(LinkState state)
         {
             _state = state;
             _state.OnEnter(this);
