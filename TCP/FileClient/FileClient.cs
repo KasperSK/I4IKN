@@ -139,8 +139,7 @@ namespace FileClient
                     bytesToRead = lenght;
                 }
             }
-            file.Close();
-           
+            file.Close();      
         }
 
         public string CalculateSha1(string path)
