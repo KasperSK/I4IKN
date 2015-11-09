@@ -40,7 +40,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ILinkFrontend.cs" />
     <Compile Include="LinkStateMachine.cs" />
+    <Compile Include="LinkStates\BState.cs" />
+    <Compile Include="LinkStates\Idle.cs" />
+    <Compile Include="LinkStates\MoreToSend.cs" />
+    <Compile Include="LinkStates\Receiving.cs" />
+    <Compile Include="LinkStates\Sending.cs" />
+    <Compile Include="LinkStates\WaitForA.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
