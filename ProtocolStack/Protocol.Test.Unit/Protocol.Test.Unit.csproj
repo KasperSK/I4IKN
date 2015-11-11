@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{8837C51B-2C39-4B33-AA11-C358FF3049FF}</ProjectGuid>
+    <ProjectGuid>{45E7DF38-14C5-4331-A5BD-44B17A6F880E}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Link</RootNamespace>
-    <AssemblyName>Link</AssemblyName>
+    <RootNamespace>Protocol.Test.Unit</RootNamespace>
+    <AssemblyName>Protocol.Test.Unit</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -30,6 +30,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="NSubstitute, Version=1.9.2.0, Culture=neutral, PublicKeyToken=92dd2e9066daa5ca, processorArchitecture=MSIL">
+      <HintPath>..\packages\NSubstitute.1.9.2.0\lib\net45\NSubstitute.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="nunit.framework, Version=2.6.4.14350, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
+      <HintPath>..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -40,15 +48,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ILinkFrontend.cs" />
-    <Compile Include="LinkStateMachine.cs" />
-    <Compile Include="LinkStates\BState.cs" />
-    <Compile Include="LinkStates\Idle.cs" />
-    <Compile Include="LinkStates\MoreToSend.cs" />
-    <Compile Include="LinkStates\Receiving.cs" />
-    <Compile Include="LinkStates\Sending.cs" />
-    <Compile Include="LinkStates\WaitForA.cs" />
+    <Compile Include="LinkLayer\DecryptStmTests.cs" />
+    <Compile Include="LinkLayer\EncryptStmTests.cs" />
+    <Compile Include="LinkLayer\LinkTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Link\LinkLayer.csproj">
+      <Project>{8837C51B-2C39-4B33-AA11-C358FF3049FF}</Project>
+      <Name>LinkLayer</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
