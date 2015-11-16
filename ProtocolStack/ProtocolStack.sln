@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinkLayer", "Link\LinkLayer
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Protocol.Test.Unit", "Protocol.Test.Unit\Protocol.Test.Unit.csproj", "{45E7DF38-14C5-4331-A5BD-44B17A6F880E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProtocolStack.Program", "ProtocolStack.Program\ProtocolStack.Program.csproj", "{130CFF7E-49A7-4993-898D-70EC85A72468}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{45E7DF38-14C5-4331-A5BD-44B17A6F880E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{45E7DF38-14C5-4331-A5BD-44B17A6F880E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{45E7DF38-14C5-4331-A5BD-44B17A6F880E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{130CFF7E-49A7-4993-898D-70EC85A72468}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{130CFF7E-49A7-4993-898D-70EC85A72468}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{130CFF7E-49A7-4993-898D-70EC85A72468}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{130CFF7E-49A7-4993-898D-70EC85A72468}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
