@@ -9,7 +9,6 @@ namespace LinkLayer
 {
     public class Serial : IPhysical
     {
-        public const int InfiniteTimeout = SerialPort.InfiniteTimeout;
 
         private SerialPort _port;
 
@@ -18,6 +17,9 @@ namespace LinkLayer
             _port = new SerialPort(portName, baud, Parity.None, databits, StopBits.One);
             _port.Open();
         }
+
+        public int InfiniteTimeout => SerialPort.InfiniteTimeout;
+
         public void Write(byte[] buffer, int buffersize)
         {
             _port.Write(buffer, 0, buffersize);

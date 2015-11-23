@@ -39,6 +39,7 @@ namespace TransportLayer
             _recvBuffer = new byte[1004];
             _sendBuffer = new byte[4];
             _link = link;
+            _checksum = new Checksum();
             SetState(new ReceivingZero());
         }
 

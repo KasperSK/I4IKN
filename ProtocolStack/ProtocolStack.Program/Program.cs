@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO.Ports;
-using TransportLayer;
 
 namespace ProtocolStack.Program
 {

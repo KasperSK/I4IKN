@@ -27,8 +27,10 @@ namespace Protocol.Test.Unit.LinkLayer
             _dataEnumerator = _serialData.GetEnumerator();
             _dataEnumerator.Reset();
 
+            _fakePhysical.InfiniteTimeout.Returns(100);
+
             _fakePhysical
-                .Read(Arg.Any<byte[]>(), Arg.Any<int>())
+                .Read(Arg.Any<byte[]>(), Arg.Any<int>(), 100)
                 .Returns(x =>
                 {
                     var buffer = x.Arg<byte[]>();

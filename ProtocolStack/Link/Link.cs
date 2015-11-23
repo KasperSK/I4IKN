@@ -46,7 +46,7 @@ namespace LinkLayer
             {
                 if (_inputbufferptr == _inputbufferend)
                 {
-                    _inputbufferend = _physical.Read(_inputbuffer, _messageSize*2 + 2);
+                    _inputbufferend = _physical.Read(_inputbuffer, _messageSize*2 + 2, _physical.InfiniteTimeout);
                     _inputbufferptr = 0;
                 }
                 frameIsComplete = _decrypt.ParseByte(_inputbuffer[_inputbufferptr]);
