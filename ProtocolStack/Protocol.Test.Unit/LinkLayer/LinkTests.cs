@@ -14,7 +14,7 @@ namespace Protocol.Test.Unit.LinkLayer
             var decrypter = new DecryptStm();
             var encrypter = new EncryptStm();
             _fakePhysical = Substitute.For<IPhysical>();
-            _uut = new Link(1004, decrypter, encrypter, _fakePhysical);
+            _uut = new Link(decrypter, encrypter, _fakePhysical);
         }
 
         private ILink _uut;
@@ -27,27 +27,16 @@ namespace Protocol.Test.Unit.LinkLayer
             _dataEnumerator = _serialData.GetEnumerator();
             _dataEnumerator.Reset();
 
-            _fakePhysical.InfiniteTimeout.Returns(100);
 
             _fakePhysical
-                .Read(Arg.Any<byte[]>(), Arg.Any<int>(), 100)
+                .Read()
                 .Returns(x =>
                 {
-                    var buffer = x.Arg<byte[]>();
-                    var j = 0;
-                    for (var i = 0; i < split; ++i)
-                    {
-                        if (_dataEnumerator.MoveNext())
+                    if (_dataEnumerator.MoveNext())
                         {
-                            buffer[i] = Convert.ToByte(_dataEnumerator.Current);
-                            ++j;
+                            return Convert.ToByte(_dataEnumerator.Current);
                         }
-                        else
-                        {
-                            break;
-                        }
-                    }
-                    return j;
+                    throw new TimeoutException();
                 });
         }
 

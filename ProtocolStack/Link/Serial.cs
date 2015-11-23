@@ -10,26 +10,47 @@ namespace LinkLayer
     public class Serial : IPhysical
     {
 
-        private SerialPort _port;
+        private readonly SerialPort _port;
+        private readonly int _bufferSize;
+        private readonly byte[] _buffer;
+        private int _bufferEnd;
+        private int _bufferPtr;
+        private readonly int _timeout;
 
-        public Serial(string portName, int baud, int databits)
+        public Serial(string portName, int baud, int databits, int bufferSize, int timeout)
         {
+            _bufferSize = bufferSize;
+            _bufferEnd = 0;
+            _bufferPtr = 0;
+            _timeout = timeout;
+            _buffer = new byte[bufferSize];
             _port = new SerialPort(portName, baud, Parity.None, databits, StopBits.One);
             _port.Open();
         }
-
-        public int InfiniteTimeout => SerialPort.InfiniteTimeout;
 
         public void Write(byte[] buffer, int buffersize)
         {
             _port.Write(buffer, 0, buffersize);
         }
 
-        public int Read(byte[] buffer, int buffersize, int timeout)
+        public void EnableTimeout()
         {
-            if (timeout == -1)
-                timeout = System.IO.Ports.SerialPort.InfiniteTimeout;
-            return _port.Read(buffer, 0, buffersize);
+            _port.ReadTimeout = _timeout;
+        }
+
+        public void DisableTimeout()
+        {
+            _port.ReadTimeout = SerialPort.InfiniteTimeout;
+        }
+
+        public byte Read()
+        {
+            if (_bufferPtr == _bufferEnd)
+            {
+                _bufferPtr = 0;
+                _bufferEnd = _port.Read(_buffer, 0, _bufferSize);
+            }
+            return _buffer[_bufferPtr++];
         }
 
         /*
