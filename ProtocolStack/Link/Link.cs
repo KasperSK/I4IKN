@@ -2,26 +2,25 @@
 
 namespace LinkLayer
 {
+    public static class Factory
+    {
+        public static ILink GetLink(string portName, int buffer, int timeout)
+        {
+            return new Link(new DecryptStm(), new EncryptStm(), new Serial(portName, 115200, 8, buffer * 2 + 2, timeout)  );
+        }
+    }
     public class Link : ILink
     {
         private readonly IDecrypt _decrypt;
-        private readonly byte[] _inputbuffer;
-        private readonly int _messageSize;
         private readonly IEncrypt _encrypt;
         private readonly IPhysical _physical;
 
-        private int _inputbufferend;
-        private int _inputbufferptr;
 
-        public Link(int messageSize, IDecrypt decrypt, IEncrypt encrypt, IPhysical physical)
+        public Link(IDecrypt decrypt, IEncrypt encrypt, IPhysical physical)
         {
             _decrypt = decrypt;
             _encrypt = encrypt;
             _physical = physical;
-            _messageSize = messageSize;
-            _inputbuffer = new byte[messageSize*2 + 2];
-            _inputbufferend = 0;
-            _inputbufferptr = 0;
         }
 
         public void SendMessage(byte[] msg, int length)
@@ -40,18 +39,47 @@ namespace LinkLayer
 
         public int GetMessage(byte[] msg)
         {
+            //Clear for new message
             _decrypt.NewMessage(msg);
-            bool frameIsComplete;
-            do
+
+            //Fetch first char without timeout
+            _physical.DisableTimeout();
+            try
             {
-                if (_inputbufferptr == _inputbufferend)
+                _decrypt.ParseByte(_physical.Read());
+            }
+            catch (ArgumentException)
+            {
+
+                _decrypt.Reset();
+                return -1;
+            }
+            
+
+            // Timeout for the rest
+            _physical.EnableTimeout();
+            try
+            {
+                while (!_decrypt.ParseByte(_physical.Read()))
                 {
-                    _inputbufferend = _physical.Read(_inputbuffer, _messageSize*2 + 2);
-                    _inputbufferptr = 0;
                 }
-                frameIsComplete = _decrypt.ParseByte(_inputbuffer[_inputbufferptr]);
-                ++_inputbufferptr;
-            } while (!frameIsComplete);
+            }
+            catch (TimeoutException)
+            {
+                _decrypt.Reset();
+                return -1;
+            }
+            catch (IndexOutOfRangeException)
+            {
+                _decrypt.Reset();
+                return -1;
+            }
+            catch (ArgumentException)
+            {
+                _decrypt.Reset();
+                return -1;
+            }
+            
             return _decrypt.BufferSize;
         }
     }

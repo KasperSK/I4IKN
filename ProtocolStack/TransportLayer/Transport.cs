@@ -38,7 +38,7 @@ namespace TransportLayer
 
         public Transport(string portName, int baud, int databits)
         {
-            ILink link = new Link(Buffer, new DecryptStm(), new EncryptStm(), new Serial(portName, baud, databits));
+            var link = Factory.GetLink(portName, 1000, 10000);
             _sendingStateMachine = new SenderStmContext(link);
             _receivingStateMachine = new ReceiverStmContext(link);
         }

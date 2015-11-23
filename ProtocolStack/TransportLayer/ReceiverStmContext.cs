@@ -61,6 +61,7 @@ namespace TransportLayer
         public void ReadSerial()
         {
             _receiveBufferLenght = _link.GetMessage(_recvBuffer);
+            Console.WriteLine("Length:" + _receiveBufferLenght);
         }
 
         public bool CheckSequence(int seq)

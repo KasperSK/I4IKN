@@ -19,14 +19,12 @@ namespace LinkLayer
             throw new ArgumentException();
         }
 
-        /*
-        public void Reset(DecryptStm context, byte[] buffer)
+        
+        public void Reset(DecryptStm context)
         {
-            context.Buffer = null;
-            context.BufferSize = 0;
             context.SetState(new Idle());
         }
-        */
+        
     }
 
     public class DecryptStm : IDecrypt
@@ -71,6 +69,11 @@ namespace LinkLayer
         {
             Buffer[BufferSize] = b;
             ++BufferSize;
+        }
+
+        public void Reset()
+        {
+            _state.Reset(this);
         }
     }
 }
