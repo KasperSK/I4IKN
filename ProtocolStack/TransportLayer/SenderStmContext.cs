@@ -83,10 +83,6 @@ namespace TransportLayer
 
         public void SendSegment()
         {
-            _messagebuffer[0] = 75;
-            _messagebuffer[1] = 75;
-            _messagebuffer[2] = 75;
-            _messagebuffer[3] = 75;
             _link.SendMessage(_messagebuffer, _lenght);
         }
 

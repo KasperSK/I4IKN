@@ -56,15 +56,25 @@ namespace TransportLayer
 
     public class Checksum
     {
-        private int MakeCheckSum(byte[] buffer)
+        private ushort MakeCheckSum(byte[] buffer)
         {
-            // TO DO FIX THIS SHIT
-            return 10;
+            ushort sum = 0;
+            for (int i = 0; i < buffer.Length; i++)
+            {
+                sum += buffer[i];
+            }
+
+            return sum;
         }
 
         public bool VerifyCheckSum(byte[] buffer)
         {
-            return true;
+            byte[] internalBuffer = new byte[buffer.Length - 2];
+
+            Array.Copy(buffer, 2, internalBuffer, 0, internalBuffer.Length);
+            int sum = (buffer[0] << 8) | buffer[1];
+
+            return MakeCheckSum(internalBuffer) == (ushort)sum;
         }
 
         public void CalculateCheckSum(byte[] buffer)
