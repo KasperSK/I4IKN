@@ -7,7 +7,7 @@ namespace LinkLayer
         private readonly IDecrypt _decrypt;
         private readonly byte[] _inputbuffer;
         private readonly int _messageSize;
-        private IEncrypt _encrypt;
+        private readonly IEncrypt _encrypt;
         private readonly IPhysical _physical;
 
         private int _inputbufferend;
