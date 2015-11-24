@@ -1,26 +1,129 @@
 ﻿using System;
 using System.IO.Ports;
+using System.Threading;
+using LinkLayer;
+using NSubstitute;
 using TransportLayer;
 
 namespace ProtocolStack.Program
 {
-    class Program
+
+    public class MyServer
     {
+        public void Start()
+        {
+            var fakeChecksum = Substitute.For<IChecksum>();
+            fakeChecksum.VerifyChecksum(Arg.Any<Message>()).Returns(x => ((Message)x[0]).Checksum == 24929);
+            fakeChecksum.When(x => x.GenerateChecksum(Arg.Any<Message>())).Do(x => { x.Arg<Message>().Checksum = 24929; });
+
+
+            IReceiver receiver = new ReceiverStmContext(Factory.GetLink("COM5", 1004, 10000), fakeChecksum, new SequenceGenerator(), 1000);
+            var data = new byte[1000];
+            Console.WriteLine("Server up and running");
+            while (true)
+            {
+                var len = receiver.ReceiveData(data);
+                Console.Write("Message: ");
+                for (var i = 0; i < len; i++)
+                {
+                    Console.Write((char)data[i]);
+                }
+                Console.WriteLine("");
+                if (len == 1)
+                {
+                    return;
+                }
+            }
+        }
+    }
+
+    static class Program
+    {
+        
+
         static void Main(string[] args)
         {
-            Console.WriteLine(args[0]);
-            var msg = new byte[10] { 75, 65, 76, 76, 69, 66, 97, 108, 108, 101 };
+            
+            var msgSmall = new byte[10] { 75, 65, 76, 76, 69, 66, 97, 108, 108, 101 };
 
+            var msgLong = new byte[3000];
+
+            for (int i = 0; i < 3000; i++)
+            {
+                msgLong[i] = (byte) ((i / 1000) + 97);
+            }
+
+            var server = new MyServer();
+            var serverThread = new Thread(server.Start);
+            serverThread.Start();
+
+            var fakeChecksum = Substitute.For<IChecksum>();
+            fakeChecksum.VerifyChecksum(Arg.Any<Message>()).Returns(x => ((Message)x[0]).Checksum == 24929);
+            fakeChecksum.When(x => x.GenerateChecksum(Arg.Any<Message>())).Do(x => { x.Arg<Message>().Checksum = 24929; });
+
+            var seq = Substitute.ForPartsOf<SequenceGenerator>();
+            seq.When(x => x.Reset()).DoNotCallBase();
+            seq.Sequence = 97;
+
+            ISender client = new SenderStmContext(Factory.GetLink("COM6", 1004, 10000), fakeChecksum, seq, 1000, 20000);
+
+            while (true)
+            {
+                var key = Console.ReadKey().Key;
+                switch (key)
+                {
+                    case ConsoleKey.Q:
+                        client.SyncUp();
+                        break;
+                    case ConsoleKey.W:
+                        client.SendData(msgSmall, msgSmall.Length);
+                        break;
+
+                    case ConsoleKey.E:
+                        client.SendData(msgLong, msgLong.Length);
+                        break;
+                }
+            }
+            /*
+            Sync AaanaA
+
+Data1     AaaobaaaaA
+	 
+Data2	  AaapbbfdbfdA
+	 
+Data3	 AaaqbfjdsklafjdsaA
+	 
+Data4	 AaarbfjdsklafjdsaA
+
+            */
+
+
+            /*
+                    var fakeChecksum = Substitute.For<IChecksum>();
+                        fakeChecksum.VerifyChecksum(Arg.Any<Message>()).Returns(true);
+                        fakeChecksum.When(x => x.GenerateChecksum(Arg.Any<Message>())).Do(x => { x.Arg<Message>().Checksum = 24929; });
+
+                        var fakeSequence = Substitute.For<ISequenceGenerator>();
+                        fakeSequence.Sequence.Returns((byte) 'n');
+
+                        //ISender sender = new SenderStmContext(Factory.GetLink("COM5",1004,10000), fakeChecksum, fakeSequence, 1000, 5000);
+
+                        IReceiver  receiver = new ReceiverStmContext(Factory.GetLink("COM5", 1004, 10000), fakeChecksum, new SequenceGenerator(), 1000);
+                        receiver.ReceiveData(msg);
+                        receiver.ReceiveData(msg);
+                        //sender.SyncUp();
+                        //sender.SendData(msg, 10);
+                        */
             //var port = new SerialPort("COM20", 115200, Parity.None, 8 ,StopBits.One);
 
-            var msg2 = new byte[] {0, 0, 75, 65, 76, 76, 69, 66, 97, 108, 108, 101};
-            var checksum = new Checksum();
+            //var msg2 = new byte[] {0, 0, 75, 65, 76, 76, 69, 66, 97, 108, 108, 101};
+            //var checksum = new Checksum();
 
-            checksum.CalculateCheckSum(msg2);
+            //checksum.CalculateCheckSum(msg2);
 
-            if(checksum.VerifyCheckSum(msg2))
-                Console.WriteLine("True");
-            
+            //if(checksum.VerifyCheckSum(msg2))
+            //    Console.WriteLine("True");
+
             //port.Open();
             //port.ReadTimeout = 10000;
             //Console.Write("Pre");
@@ -31,6 +134,9 @@ namespace ProtocolStack.Program
 
             //var link = new Link(1000, new DecryptStm(), new EncryptStm(), new Serial("COM5", 15520, 8)  );
             //link.SendMessage(msg, 10);
+
+
+            /*
             var toMe = new byte[1000];
 
             var transport = new Transport(args[0], 115200, 8);
@@ -45,6 +151,8 @@ namespace ProtocolStack.Program
                 }
                 Console.WriteLine(Environment.NewLine);
             }
+            */
+
 
             //var Link = new Link(1000, new DecryptStm(), new EncryptStm(), new Serial("/dev/ttyS1", 115200, 8));
             //Link.SendMessage(msg, 10);

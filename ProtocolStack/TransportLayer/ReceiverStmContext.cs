@@ -4,91 +4,127 @@ using TransportLayer.ReceivingStates;
 
 namespace TransportLayer
 {
-    public abstract class ReceiverSuperState
+    public class ReceiverStmContext : IReceiver
     {
-        public virtual void OnEnter(ReceiverStmContext context)
-        {
-
-        }
-
-        public virtual void ReceiveMessage(ReceiverStmContext context)
-        {
-
-        }
-    }
-
-    public class ReceiverStmContext
-    {
+        private readonly IChecksum _checksum;
+        private readonly ILink _link;
+        private readonly Message _message;
+        private readonly Message _reply;
+        private readonly ISequenceGenerator _sequence;
         //State Machine internals
         private ReceiverSuperState _state;
+
+        public bool Ready;
+
+        public ReceiverStmContext(ILink link, IChecksum cheksum, ISequenceGenerator sequenceGenerator,
+            int maxMessageDataSize)
+        {
+            _message = new Message(maxMessageDataSize);
+            _reply = new Message(0);
+            _link = link;
+            _sequence = sequenceGenerator;
+            _checksum = cheksum;
+            SetState(new MissingSync());
+        }
+
+        // Actions
+
+        public DataType MessageType => _message.DataType;
+
         public void SetState(ReceiverSuperState state)
         {
             _state = state;
             _state.OnEnter(this);
         }
 
-        private readonly Checksum _checksum;
-        private readonly ILink _link;
-        private byte[] _recvBuffer;
-        private byte[] _sendBuffer;
-        private byte[] _returnBuffer;
-        private int _receiveBufferLenght;
-
-        public ReceiverStmContext(ILink link)
+        // Public Interface
+        public int ReceiveData(byte[] buffer)
         {
-            _recvBuffer = new byte[1004];
-            _sendBuffer = new byte[4];
-            _link = link;
-            _checksum = new Checksum();
-            SetState(new ReceivingZero());
+            while (!Ready)
+            {
+                Console.WriteLine("Waiting for message");
+                ReceiveMessage();
+                _state.MessageReceived(this);
+            }
+            Array.Copy(_message.Buffer, Message.DataOffset, buffer, 0, _message.DataSize);
+            Ready = false;
+            return _message.DataSize;
         }
 
-        //Events
-        public int ReceiveMessage(byte[] receiveBuffer)
+        public bool ValidateMessage()
         {
-            _returnBuffer = receiveBuffer;
-            _receiveBufferLenght = receiveBuffer.Length;
-            _state.ReceiveMessage(this);
-            return _receiveBufferLenght;
+            Console.WriteLine("Validating Length");
+            if (!_message.ValidMessageSize())
+                return false;
+
+            Console.WriteLine("Checksum");
+            if (!_checksum.VerifyChecksum(_message))
+                return false;
+
+            return true;
         }
 
-        //Actions
-        public bool VerifyCheckSum()
+        public bool ValidSync()
         {
-            return _checksum.VerifyCheckSum(_recvBuffer);
+            Console.WriteLine("Validating Size");
+            if (_message.DataSize != 0)
+                return false;
+
+            return true;
         }
 
-        public void ReadSerial()
+        public bool ValidData()
         {
-            _receiveBufferLenght = _link.GetMessage(_recvBuffer);
-            Console.WriteLine("Length:" + _receiveBufferLenght);
+            Console.WriteLine("Validating Size: " + _message.DataSize);
+            if (_message.DataSize <= 0)
+                return false;
+
+            return true;
         }
 
-        public bool CheckSequence(int seq)
+        public bool ValidSequence()
         {
-            return _recvBuffer[(int) HeaderPosition.Sequence] == seq;
+            return _message.Sequence == _sequence.Sequence;
         }
 
-        public void SetUpAck(byte seq)
+        public void UpdateSequence()
         {
-            _sendBuffer[(int)HeaderPosition.Sequence] = seq;
-            _sendBuffer[(int)HeaderPosition.Type] = 1;
-            _checksum.CalculateCheckSum(_sendBuffer);
+            _sequence.Sequence = _message.Sequence;
         }
 
-        public void SendAck()
+        public void IncrementSequence()
         {
-            _link.SendMessage(_sendBuffer, 4);
+            _sequence.Increment();
         }
 
-        public void SetReturnZero()
+        public void SetAckReply()
         {
-            _receiveBufferLenght = 0;
+            _reply.Sequence = _sequence.Sequence;
+            _reply.DataSize = 0;
+            _reply.DataType = DataType.Ack;
+            _checksum.GenerateChecksum(_reply);
         }
 
-        public void CopyToReturnBuffer()
+        public void SendReply()
         {
-            Array.Copy(_recvBuffer, 4, _returnBuffer, 0, _receiveBufferLenght - 4);
+            _link.SendMessage(_reply.Buffer, _reply.MessageSize);
+        }
+
+        // Internal Helper Functions
+        private void ReceiveMessage()
+        {
+            _message.MessageSize = _link.GetMessage(_message.Buffer);
+        }
+    }
+
+    public abstract class ReceiverSuperState
+    {
+        public virtual void OnEnter(ReceiverStmContext context)
+        {
+        }
+
+        public virtual void MessageReceived(ReceiverStmContext context)
+        {
         }
     }
 }
