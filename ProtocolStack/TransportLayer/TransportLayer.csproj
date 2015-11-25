@@ -41,15 +41,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Checksum.cs" />
+    <Compile Include="IChecksum.cs" />
+    <Compile Include="IReceiver.cs" />
+    <Compile Include="ISender.cs" />
+    <Compile Include="ISequenceGenerator.cs" />
+    <Compile Include="ReceivingStates\MissingSync.cs" />
+    <Compile Include="SenderStates\ReSend.cs" />
+    <Compile Include="SequenceGenerator.cs" />
     <Compile Include="Transport.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReceiverStmContext.cs" />
-    <Compile Include="ReceivingStates\ReceivingOne.cs" />
-    <Compile Include="ReceivingStates\ReceivingZero.cs" />
-    <Compile Include="SenderStates\SendingOne.cs" />
-    <Compile Include="SenderStates\SendingZero.cs" />
-    <Compile Include="SenderStates\WaitingOne.cs" />
-    <Compile Include="SenderStates\WaitingZero.cs" />
+    <Compile Include="ReceivingStates\Receiving.cs" />
+    <Compile Include="SenderStates\Sending.cs" />
+    <Compile Include="SenderStates\Waiting.cs" />
     <Compile Include="SenderStmContext.cs" />
   </ItemGroup>
   <ItemGroup>

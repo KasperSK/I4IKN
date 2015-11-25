@@ -7,100 +7,182 @@ namespace TransportLayer
 {
     
 
-    public class SenderStmContext
+    public class SenderStmContext : ISender
     {
         //State Machine internals
         private SenderSuperState _state;
+        
+
+
         public void SetState(SenderSuperState state)
         {
             _state = state;
             _state.OnEnter(this);
         }
 
-        private readonly Checksum _checksum;
+        private readonly IChecksum _checksum;
         private readonly ILink _link;
         private readonly Timer _timer;
-        private readonly TimerCallback _timerCallback;
-        private byte[] _messagebuffer;
-        private byte[] _recvBuffer;
-        private int _lenght;
+        private readonly int _maxMessageDataSize;
+        private readonly Message _message;
+        private readonly Message _reply;
+        private readonly ISequenceGenerator _sequence;
+        private readonly int _timeout;
 
-        public SenderStmContext(ILink link)
+        public bool Ready;
+        
+        public SenderStmContext(ILink link, IChecksum checksum, ISequenceGenerator sequenceGenerator, int maxMessageDataSize, int timeout)
         {
-            _timerCallback += MessageTimeout;
-            _checksum = new Checksum();
-            _timer = new Timer(_timerCallback, null, Timeout.Infinite, Timeout.Infinite);
+            
+            _checksum = checksum;
+
+            _timeout = timeout;
+
+            _timer = new Timer(MessageTimeout);
+            
             _link = link;
-            SetState(new SendingZero());
+
+            _maxMessageDataSize = maxMessageDataSize;
+            _message = new Message(_maxMessageDataSize);
+            _reply = new Message(0);
+
+            _sequence = sequenceGenerator;
+
+            SetState(new Sending());
+            
         }
 
-        //Events
-        public void SendMessage(byte[] buffer, int size)
+        //Public Interfaces
+        public void SendData(byte[] buffer, int size)
         {
+            var offset = 0;
+            // While we have data to send
+            while (size - offset > 0)
+            {
+                // Set length to remaining, but not larger than max
+                var length = size - offset > _maxMessageDataSize ? _maxMessageDataSize : size - offset;
 
-            _state.SendMessage(this, buffer, size);
+                // Send the data
+                _state.SendData(this, buffer, offset, length);
+
+                // Move the offset with the amount we send
+                offset += length;
+
+                // This is to emulate receive events, Ready is true when the message came acros correct
+                while (!Ready)
+                {
+                    ReceiveMessage();
+                    _state.ReceivedMessage(this, _reply);
+                }
+            }
         }
 
-        public void ReceiveMessage()
+        public void SyncUp()
         {
-            _state.ReceiveMessage(this);
-        }
-
-        public void MessageTimeout(object obj)
-        {
-            _state.Timeout(this);
+            _state.Sync(this);
+            while (!Ready)
+            {
+                ReceiveMessage();
+                _state.ReceivedMessage(this, _reply);
+            }
         }
 
         //Actions
-
-        public void SetUpBuffer(byte[] buffer, int size)
+        public void SetMessage(byte[] buffer, int offset, int size)
         {
-            _messagebuffer = new byte[size + 4];
-            Array.Copy(buffer,0,_messagebuffer,4,size);
-            _lenght = size + 4;
+            _message.SetData(buffer, offset, size);
+            _message.DataType = DataType.Data;
+            _message.Sequence = _sequence.Sequence;
+            _checksum.GenerateChecksum(_message);
         }
 
-        public void SetUpHeader(byte seq, DataType type)
+        public void SetSyncMessage()
         {
-            _messagebuffer[(int)HeaderPosition.Sequence] = seq;
-            _messagebuffer[(int)HeaderPosition.Type] = (byte)type;
+            _message.DataSize = 0;
+            _message.DataType = DataType.Syn;
+            _message.Sequence = _sequence.Sequence;
+            _checksum.GenerateChecksum(_message);
         }
 
-        public void MakeCheckSum()
+        public void IncrementSequence()
         {
-            _checksum.CalculateCheckSum(_messagebuffer);
+            _sequence.Increment();
         }
 
-        public bool VerifyCheckSum()
+        public void ResetSequence()
         {
-            return _checksum.VerifyCheckSum(_recvBuffer);
+            _sequence.Reset();
         }
 
-        public bool IsAck(byte seq)
+        public bool ValidateReply()
         {
-            return _recvBuffer[(int) HeaderPosition.Sequence] == seq && _recvBuffer[(int)HeaderPosition.Type] == (byte)DataType.Ack;
+            /*
+             return _reply.ValidMessageSize() && 
+                    _checksum.VerifyChecksum(_reply) &&
+                    _reply.DataType == DataType.Ack &&
+                    _reply.DataSize == 0 &&
+                    _reply._sequence == _sequence;
+                    */
+
+            Console.WriteLine("Validating Length");
+            if (!_reply.ValidMessageSize())
+                return false;
+
+            Console.WriteLine("Checksum");
+            if (!_checksum.VerifyChecksum(_reply))
+                return false;
+
+            Console.WriteLine("Validating Datatype");
+            if (_reply.DataType != DataType.Ack)
+                return false;
+
+            Console.WriteLine("Validating Size");
+            if (_reply.DataSize != 0)
+                return false;
+
+            Console.WriteLine("Validating Sequence");
+            if (_reply.Sequence != _sequence.Sequence)
+                return false;
+
+            return true;
+
         }
 
-        public void SendSegment()
+        public void SendMessage()
         {
-            _link.SendMessage(_messagebuffer, _lenght);
+            Console.WriteLine("Sending");
+            Console.WriteLine("Seq: " + (char)_message.Sequence);
+            Console.WriteLine("Type: " + (char)_message.DataType);
+            StartTimer();
+            _link.SendMessage(_message.Buffer, _message.MessageSize);
         }
 
-        public int ReceiveAck()
+
+
+
+        // Internal helper functions
+        private void MessageTimeout(object obj)
         {
-            _recvBuffer = new byte[4];
-            return _link.GetMessage(_recvBuffer);
+            StopTimer();
+            _state.Timeout(this);
         }
 
-        public void StartTimer()
+        private void ReceiveMessage()
         {
-            _timer.Change(10000, Timeout.Infinite);
+            _reply.MessageSize = _link.GetMessage(_reply.Buffer);
+            StopTimer();
         }
 
-        public void StopTimer()
+        private void StartTimer()
+        {
+            _timer.Change(_timeout, Timeout.Infinite);
+        }
+
+        private void StopTimer()
         {
             _timer.Change(Timeout.Infinite, Timeout.Infinite);
         }
+        
     }
 
     public abstract class SenderSuperState
@@ -110,14 +192,19 @@ namespace TransportLayer
 
         }
 
-        public virtual void SendMessage(SenderStmContext context, byte[] buffer, int size)
+        public virtual void Sync(SenderStmContext context)
+        {
+            
+        }
+
+        public virtual void SendData(SenderStmContext context, byte[] buffer, int offset, int size)
         {
 
         }
 
-        public virtual void ReceiveMessage(SenderStmContext context)
+        public virtual void ReceivedMessage(SenderStmContext context, Message message)
         {
-
+            
         }
 
         public virtual void Timeout(SenderStmContext context)
