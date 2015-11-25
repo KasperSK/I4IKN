@@ -46,6 +46,8 @@
     <Compile Include="IReceiver.cs" />
     <Compile Include="ISender.cs" />
     <Compile Include="ISequenceGenerator.cs" />
+    <Compile Include="ITransport.cs" />
+    <Compile Include="Message.cs" />
     <Compile Include="ReceivingStates\MissingSync.cs" />
     <Compile Include="SenderStates\ReSend.cs" />
     <Compile Include="SequenceGenerator.cs" />
