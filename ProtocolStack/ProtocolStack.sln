@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProtocolStack.Program", "Pr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TransportLayer", "TransportLayer\TransportLayer.csproj", "{A7DDF2DB-D257-459F-9074-FF0E1DA0F9DE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationLayerClient", "ApplicationLayerClient\ApplicationLayerClient.csproj", "{E407AD6A-0644-4925-9BEA-ECFBE8E1353A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{A7DDF2DB-D257-459F-9074-FF0E1DA0F9DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A7DDF2DB-D257-459F-9074-FF0E1DA0F9DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A7DDF2DB-D257-459F-9074-FF0E1DA0F9DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E407AD6A-0644-4925-9BEA-ECFBE8E1353A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E407AD6A-0644-4925-9BEA-ECFBE8E1353A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E407AD6A-0644-4925-9BEA-ECFBE8E1353A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E407AD6A-0644-4925-9BEA-ECFBE8E1353A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
