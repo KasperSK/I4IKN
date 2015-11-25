@@ -6,5 +6,7 @@
         void EnableTimeout();
         void DisableTimeout();
         byte Read();
+        int Timeout { get; }
+        void Close();
     }
 }

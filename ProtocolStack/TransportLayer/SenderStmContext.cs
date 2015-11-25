@@ -31,12 +31,12 @@ namespace TransportLayer
 
         public bool Ready;
         
-        public SenderStmContext(ILink link, IChecksum checksum, ISequenceGenerator sequenceGenerator, int maxMessageDataSize, int timeout)
+        public SenderStmContext(ILink link, IChecksum checksum, ISequenceGenerator sequenceGenerator, int maxMessageDataSize, int timeoutModifier)
         {
             
             _checksum = checksum;
 
-            _timeout = timeout;
+            _timeout = link.Timeout * timeoutModifier;
 
             _timer = new Timer(MessageTimeout);
             

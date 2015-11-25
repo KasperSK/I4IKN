@@ -1,12 +1,14 @@
 ﻿using System;
+using System.IO.Ports;
 
 namespace LinkLayer
 {
     public static class Factory
     {
-        public static ILink GetLink(string portName, int buffer, int timeout)
+        public static ILink GetLink(SerialPort port, int maxMessageSize, int timeoutmodifier)
         {
-            return new Link(new DecryptStm(), new EncryptStm(), new Serial(portName, 115200, 8, buffer * 2 + 2, timeout)  );
+            var maxFrameSize = maxMessageSize * 2 + 2;
+            return new Link(new DecryptStm(), new EncryptStm(), new Serial(port, maxFrameSize, timeoutmodifier), maxFrameSize);
         }
     }
     public class Link : ILink
@@ -14,13 +16,15 @@ namespace LinkLayer
         private readonly IDecrypt _decrypt;
         private readonly IEncrypt _encrypt;
         private readonly IPhysical _physical;
+        private readonly int _maxFrameSize;
 
 
-        public Link(IDecrypt decrypt, IEncrypt encrypt, IPhysical physical)
+        public Link(IDecrypt decrypt, IEncrypt encrypt, IPhysical physical, int maxFrameSize)
         {
             _decrypt = decrypt;
             _encrypt = encrypt;
             _physical = physical;
+            _maxFrameSize = maxFrameSize;
         }
 
         public void SendMessage(byte[] msg, int length)
@@ -81,6 +85,12 @@ namespace LinkLayer
             }
             
             return _decrypt.BufferSize;
+        }
+
+        public int Timeout => _physical.Timeout * _maxFrameSize;
+        public void Close()
+        {
+            _physical.Close();
         }
     }
 }

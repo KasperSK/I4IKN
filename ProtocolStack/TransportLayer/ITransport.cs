@@ -1,5 +1,12 @@
 namespace TransportLayer
 {
+    public enum DataType : byte
+    {
+        Syn = 97,
+        Data = 98,
+        Ack = 99
+    }
+
     public interface ITransport
     {
         void SendMessage(byte[] message, int size);

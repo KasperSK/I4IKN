@@ -38,7 +38,7 @@ namespace TransportLayer
         }
 
         // Public Interface
-        public int ReceiveData(byte[] buffer)
+        public int ReceiveData(byte[] buffer, int size)
         {
             while (!Ready)
             {
