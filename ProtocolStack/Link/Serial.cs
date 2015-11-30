@@ -11,20 +11,18 @@ namespace LinkLayer
     {
 
         private readonly SerialPort _port;
-        private readonly int _bufferSize;
         private readonly byte[] _buffer;
         private int _bufferEnd;
         private int _bufferPtr;
-        private readonly int _timeout;
 
-        public Serial(string portName, int baud, int databits, int bufferSize, int timeout)
+        public Serial(SerialPort port, int bufferSize, int timeoutmodifier)
         {
-            _bufferSize = bufferSize;
             _bufferEnd = 0;
             _bufferPtr = 0;
-            _timeout = timeout;
+            _port = port;
+            Timeout = timeoutmodifier * (20000 / (port.BaudRate / 12));
             _buffer = new byte[bufferSize];
-            _port = new SerialPort(portName, baud, Parity.None, databits, StopBits.One);
+            
             _port.Open();
         }
 
@@ -35,7 +33,7 @@ namespace LinkLayer
 
         public void EnableTimeout()
         {
-            _port.ReadTimeout = _timeout;
+            _port.ReadTimeout = Timeout;
         }
 
         public void DisableTimeout()
@@ -48,9 +46,15 @@ namespace LinkLayer
             if (_bufferPtr == _bufferEnd)
             {
                 _bufferPtr = 0;
-                _bufferEnd = _port.Read(_buffer, 0, _bufferSize);
+                _bufferEnd = _port.Read(_buffer, 0, _buffer.Length);
             }
             return _buffer[_bufferPtr++];
+        }
+
+        public int Timeout { get; }
+        public void Close()
+        {
+            _port.Close();
         }
 
         /*

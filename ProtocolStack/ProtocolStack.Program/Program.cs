@@ -1,8 +1,5 @@
 ﻿using System;
-using System.IO.Ports;
 using System.Threading;
-using LinkLayer;
-using NSubstitute;
 using TransportLayer;
 
 namespace ProtocolStack.Program
@@ -12,17 +9,15 @@ namespace ProtocolStack.Program
     {
         public void Start()
         {
-            var fakeChecksum = Substitute.For<IChecksum>();
-            fakeChecksum.VerifyChecksum(Arg.Any<Message>()).Returns(x => ((Message)x[0]).Checksum == 24929);
-            fakeChecksum.When(x => x.GenerateChecksum(Arg.Any<Message>())).Do(x => { x.Arg<Message>().Checksum = 24929; });
 
+            ITransport transport = new Transport();
+            transport.Connect("COM7", 115200, 8);
 
-            IReceiver receiver = new ReceiverStmContext(Factory.GetLink("COM5", 1004, 10000), fakeChecksum, new SequenceGenerator(), 1000);
-            var data = new byte[1000];
+            var data = new byte[Transport.MaxMessageDataSize];
             Console.WriteLine("Server up and running");
             while (true)
             {
-                var len = receiver.ReceiveData(data);
+                var len = transport.ReceiveMessage(data, data.Length);
                 Console.Write("Message: ");
                 for (var i = 0; i < len; i++)
                 {
@@ -52,35 +47,36 @@ namespace ProtocolStack.Program
             {
                 msgLong[i] = (byte) ((i / 1000) + 97);
             }
-
+            
             var server = new MyServer();
             var serverThread = new Thread(server.Start);
             serverThread.Start();
 
+            /*
             var fakeChecksum = Substitute.For<IChecksum>();
             fakeChecksum.VerifyChecksum(Arg.Any<Message>()).Returns(x => ((Message)x[0]).Checksum == 24929);
             fakeChecksum.When(x => x.GenerateChecksum(Arg.Any<Message>())).Do(x => { x.Arg<Message>().Checksum = 24929; });
+            
 
             var seq = Substitute.ForPartsOf<SequenceGenerator>();
             seq.When(x => x.Reset()).DoNotCallBase();
             seq.Sequence = 97;
+            */
 
-            ISender client = new SenderStmContext(Factory.GetLink("COM6", 1004, 10000), fakeChecksum, seq, 1000, 20000);
+            ITransport client = new Transport();
+            client.Connect("COM8", 115200, 8);
 
             while (true)
             {
                 var key = Console.ReadKey().Key;
                 switch (key)
                 {
-                    case ConsoleKey.Q:
-                        client.SyncUp();
-                        break;
                     case ConsoleKey.W:
-                        client.SendData(msgSmall, msgSmall.Length);
+                        client.SendMessage(msgSmall, msgSmall.Length);
                         break;
 
                     case ConsoleKey.E:
-                        client.SendData(msgLong, msgLong.Length);
+                        client.SendMessage(msgLong, msgLong.Length);
                         break;
                 }
             }

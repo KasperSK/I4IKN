@@ -10,9 +10,8 @@ namespace TransportLayer
         private const int SequencePos = 2;
         private const int TypePos = 3;
 
-        private const int HeaderSize = 4;
-
         public const int DataOffset = 4;
+        public const int HeaderSize = 4;
 
         public Message(int size)
         {

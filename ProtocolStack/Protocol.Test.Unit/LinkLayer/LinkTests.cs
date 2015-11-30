@@ -14,7 +14,7 @@ namespace Protocol.Test.Unit.LinkLayer
             var decrypter = new DecryptStm();
             var encrypter = new EncryptStm();
             _fakePhysical = Substitute.For<IPhysical>();
-            _uut = new Link(decrypter, encrypter, _fakePhysical);
+            _uut = new Link(decrypter, encrypter, _fakePhysical, 1000);
         }
 
         private ILink _uut;
