@@ -79,6 +79,7 @@ namespace ApplicationLayerClient
                     responce = ":/";
                     break;
                 }
+                ++i;
             }
             return responce;
         }
