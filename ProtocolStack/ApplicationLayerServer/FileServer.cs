@@ -170,6 +170,7 @@ namespace ApplicationLayerServer
             {
                 var clientRequest = _homeBrew.ReceiveMessage(msgBuffer, 1000);
                 FsProtocol(clientRequest);
+                _homeBrew.Synced = false;
             }
         }
     }

@@ -13,6 +13,8 @@ namespace TransportLayer
         private bool _connected;
         private bool _synced;
 
+        public bool Synced { get { return _synced;} set { _synced = value; } }
+
         public const int MaxMessageDataSize = 1000;
         private const int MessageTimeoutModifier = 1;
 

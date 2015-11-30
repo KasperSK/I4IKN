@@ -13,5 +13,6 @@ namespace TransportLayer
         int ReceiveMessage(byte[] message, int size);
         void Connect(string port, int baud, int databits);
         void Disconnect();
+        bool Synced { get; set; }
     }
 }
