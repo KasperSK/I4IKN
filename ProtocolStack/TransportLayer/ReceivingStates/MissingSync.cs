@@ -13,10 +13,10 @@ namespace TransportLayer.ReceivingStates
         {
             if (context.ValidateMessage())
             {
-                Console.WriteLine("Valid Message: " + (char)context.MessageType);
+                Console.WriteLine("MissingSyncState Valid Message: " + (char)context.MessageType);
                 if (context.MessageType == DataType.Syn && context.ValidSync())
                 {
-                    Console.WriteLine("Got sync");
+                    Console.WriteLine("MissingSyncState Got sync");
                     context.UpdateSequence();
                     context.SetAckReply();
                     context.IncrementSequence();

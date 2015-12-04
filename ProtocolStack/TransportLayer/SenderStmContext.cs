@@ -124,23 +124,23 @@ namespace TransportLayer
                     _reply._sequence == _sequence;
                     */
 
-            Console.WriteLine("Validating Length");
+            Console.WriteLine("SenderStateMachine Validating Length");
             if (!_reply.ValidMessageSize())
                 return false;
 
-            Console.WriteLine("Checksum");
+            Console.WriteLine("SenderStateMachine Checksum");
             if (!_checksum.VerifyChecksum(_reply))
                 return false;
 
-            Console.WriteLine("Validating Datatype");
+            Console.WriteLine("SenderStateMachine Validating Datatype");
             if (_reply.DataType != DataType.Ack)
                 return false;
 
-            Console.WriteLine("Validating Size");
+            Console.WriteLine("SenderStateMachine Validating Size");
             if (_reply.DataSize != 0)
                 return false;
 
-            Console.WriteLine("Validating Sequence");
+            Console.WriteLine("SenderStateMachine Validating Sequence");
             if (_reply.Sequence != _sequence.Sequence)
                 return false;
 
@@ -150,9 +150,10 @@ namespace TransportLayer
 
         public void SendMessage()
         {
-            Console.WriteLine("Sending");
-            Console.WriteLine("Seq: " + (char)_message.Sequence);
-            Console.WriteLine("Type: " + (char)_message.DataType);
+            Console.WriteLine("SenderStateMachine =============Sending================");
+            Console.WriteLine("SenderStateMachine Seq: " + (int)_message.Sequence);
+            Console.WriteLine("SenderStateMachine Type: " + _message.DataType);
+            Console.WriteLine("SenderStateMachine Size: " + _message.MessageSize);
             StartTimer();
             _link.SendMessage(_message.Buffer, _message.MessageSize);
         }
@@ -170,6 +171,10 @@ namespace TransportLayer
         private void ReceiveMessage()
         {
             _reply.MessageSize = _link.GetMessage(_reply.Buffer);
+            Console.WriteLine("SenderStateMachine ##########Receiving###############");
+            Console.WriteLine("SenderStateMachine Seq: " + (int)_reply.Sequence);
+            Console.WriteLine("SenderStateMachine Type: " + _reply.DataType);
+            Console.WriteLine("SenderStateMachine Size: " + _reply.MessageSize);
             StopTimer();
         }
 

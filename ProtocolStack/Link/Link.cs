@@ -70,16 +70,19 @@ namespace LinkLayer
             }
             catch (TimeoutException)
             {
+                Console.WriteLine("LinkLayer TIMEOUT");
                 _decrypt.Reset();
                 return -1;
             }
             catch (IndexOutOfRangeException)
             {
+                Console.WriteLine("LinkLayer INDEXOUTOFRANGE");
                 _decrypt.Reset();
                 return -1;
             }
             catch (ArgumentException)
             {
+                Console.WriteLine("LinkLayer ARGUMENTEXPETION");
                 _decrypt.Reset();
                 return -1;
             }

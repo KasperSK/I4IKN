@@ -52,9 +52,14 @@ namespace ApplicationLayerServer
                         Console.WriteLine("Sending the file");
 
                         var sha = CalculateSha1(parts[1]);
+                        Console.WriteLine("Calculatet sha");
                         var file = File.OpenRead(parts[1]);
+                        Console.WriteLine("Calculatet lenght" + file.Length);
+
                         var len = file.Length;
+
                         SendRequest("FS/1.0 200 OK\r\n" + "Sha1: " + sha + "\r\n" + "Content-Length: " + file.Length + "\r\n\r\n");
+                        file.Close();
                         SendFile(parts[1], len);
 
                     }
@@ -86,6 +91,7 @@ namespace ApplicationLayerServer
                     bytestosend = (int)length;
                 }
             }
+            file.Close();
         }
 
         public void SendRequest(string request)
@@ -114,12 +120,14 @@ namespace ApplicationLayerServer
 
         public string CalculateSha1(string path)
         {
-            var file = System.IO.File.OpenRead(path);
+            Console.WriteLine("Calculating sha1");
+            var file = File.OpenRead(path);
             using (var cryptoProvider = new SHA1CryptoServiceProvider())
             {
                 string hash = BitConverter
                         .ToString(cryptoProvider.ComputeHash(file));
                 file.Close();
+                Console.WriteLine("Sha1: " + hash);
                 return hash.Replace("-", "").ToLower();
             }
         }
@@ -170,7 +178,7 @@ namespace ApplicationLayerServer
             {
                 var clientRequest = _homeBrew.ReceiveMessage(msgBuffer, 1000);
                 FsProtocol(clientRequest);
-                _homeBrew.Synced = false;
+            //    _homeBrew.Synced = false;
             }
         }
     }

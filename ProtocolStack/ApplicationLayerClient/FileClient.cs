@@ -18,6 +18,7 @@ namespace ApplicationLayerClient
         private string _filePathServer;
         private string _filePathClient;
         private bool running;
+        private bool first;
 
         private ITransport _homeBrew = new Transport();
 
@@ -32,6 +33,7 @@ namespace ApplicationLayerClient
             }
 
             running = false;
+            first = true;
         }
 
         private void Connect()

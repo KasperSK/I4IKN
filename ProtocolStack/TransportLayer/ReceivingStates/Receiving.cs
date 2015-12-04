@@ -15,7 +15,7 @@ namespace TransportLayer.ReceivingStates
             {
                 if (context.MessageType == DataType.Syn && context.ValidSync())
                 {
-                    Console.WriteLine("Valid Sync");
+                    Console.WriteLine("ReceivingState\t Valid Sync");
                     context.UpdateSequence();
                     context.SetAckReply();
                     context.IncrementSequence();
@@ -25,7 +25,7 @@ namespace TransportLayer.ReceivingStates
 
                 if (context.MessageType == DataType.Data && context.ValidData())
                 {
-                    Console.WriteLine("Valid Data");
+                    Console.WriteLine("ReceivingState\t Valid Data");
                     if (context.ValidSequence())
                     {
                         context.SetAckReply();

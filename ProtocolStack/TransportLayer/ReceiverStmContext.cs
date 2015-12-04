@@ -42,7 +42,7 @@ namespace TransportLayer
         {
             while (!Ready)
             {
-                Console.WriteLine("Waiting for message");
+                Console.WriteLine("ReceiverStateMachine Waiting for message");
                 ReceiveMessage();
                 _state.MessageReceived(this);
             }
@@ -53,11 +53,11 @@ namespace TransportLayer
 
         public bool ValidateMessage()
         {
-            Console.WriteLine("Validating Length");
+            Console.WriteLine("ReceiverStateMachine Validating Length");
             if (!_message.ValidMessageSize())
                 return false;
 
-            Console.WriteLine("Checksum");
+            Console.WriteLine("ReceiverStateMachine Checksum");
             if (!_checksum.VerifyChecksum(_message))
                 return false;
 
@@ -66,7 +66,7 @@ namespace TransportLayer
 
         public bool ValidSync()
         {
-            Console.WriteLine("Validating Size");
+            Console.WriteLine("ReceiverStateMachine Validating Size");
             if (_message.DataSize != 0)
                 return false;
 
@@ -75,7 +75,7 @@ namespace TransportLayer
 
         public bool ValidData()
         {
-            Console.WriteLine("Validating Size: " + _message.DataSize);
+            Console.WriteLine("ReceiverStateMachine Validating Size: " + _message.DataSize);
             if (_message.DataSize <= 0)
                 return false;
 
@@ -90,6 +90,7 @@ namespace TransportLayer
         public void UpdateSequence()
         {
             _sequence.Sequence = _message.Sequence;
+            Console.WriteLine("ReceiverStateMachine Updateing sequence: " + _message.Sequence);
         }
 
         public void IncrementSequence()
@@ -103,17 +104,30 @@ namespace TransportLayer
             _reply.DataSize = 0;
             _reply.DataType = DataType.Ack;
             _checksum.GenerateChecksum(_reply);
+            Console.WriteLine("ReceiverStateMachine &&&&&&&&&&&Setting reply&&&&&&&&&&&");
+            Console.WriteLine("ReceiverStateMachine Seq: " + (int)_reply.Sequence);
+            Console.WriteLine("ReceiverStateMachine Type: " + (DataType)_reply.DataType);
+            Console.WriteLine("ReceiverStateMachine Size: " + (int)_reply.MessageSize);
         }
 
         public void SendReply()
         {
             _link.SendMessage(_reply.Buffer, _reply.MessageSize);
+            Console.WriteLine("ReceiverStateMachine =========Sending reply==========");
+            Console.WriteLine("ReceiverStateMachine Seq: " + (int)_reply.Sequence);
+            Console.WriteLine("ReceiverStateMachine Type: " + (DataType)_reply.DataType);
+            Console.WriteLine("ReceiverStateMachine Size: " + (int)_reply.MessageSize);
+
         }
 
         // Internal Helper Functions
         private void ReceiveMessage()
         {
             _message.MessageSize = _link.GetMessage(_message.Buffer);
+            Console.WriteLine("ReceiverStateMachine #############Receiving Message#############");
+            Console.WriteLine("ReceiverStateMachine Seq: " + (int)_message.Sequence);
+            Console.WriteLine("ReceiverStateMachine Type: " + (DataType)_message.DataType);
+            Console.WriteLine("ReceiverStateMachine Size: " + (int)_message.MessageSize);
         }
     }
 
