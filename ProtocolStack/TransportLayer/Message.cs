@@ -59,6 +59,13 @@ namespace TransportLayer
 
         public bool ValidMessageSize()
         {
+
+            return MessageSize >= HeaderSize;
+        }
+
+        public bool ValidMessageForm()
+        {
+
             return MessageSize >= HeaderSize;
         }
     }

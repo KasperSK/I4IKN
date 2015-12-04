@@ -4,14 +4,13 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{A7DDF2DB-D257-459F-9074-FF0E1DA0F9DE}</ProjectGuid>
+    <ProjectGuid>{1F106E87-65D5-4667-9DFB-05F003292CBD}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>TransportLayer</RootNamespace>
-    <AssemblyName>TransportLayer</AssemblyName>
+    <RootNamespace>Transport</RootNamespace>
+    <AssemblyName>Transport</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -45,27 +44,27 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Checksum.cs" />
-    <Compile Include="IChecksum.cs" />
-    <Compile Include="IReceiver.cs" />
-    <Compile Include="ISender.cs" />
-    <Compile Include="ISequenceGenerator.cs" />
-    <Compile Include="ITransport.cs" />
-    <Compile Include="ITransportStm.cs" />
+    <Compile Include="Fifo.cs" />
+    <Compile Include="IFifo.cs" />
+    <Compile Include="IMessageReceiver.cs" />
+    <Compile Include="IPort.cs" />
+    <Compile Include="IPortController.cs" />
+    <Compile Include="ISocketListener.cs" />
+    <Compile Include="ISocket.cs" />
     <Compile Include="Message.cs" />
-    <Compile Include="ReceivingStates\MissingSync.cs" />
-    <Compile Include="SenderStates\ReSend.cs" />
-    <Compile Include="SequenceGenerator.cs" />
-    <Compile Include="Transport.cs" />
+    <Compile Include="Port.cs" />
+    <Compile Include="PortController.cs" />
+    <Compile Include="PortReceiver.cs" />
+    <Compile Include="PortTransmitter.cs" />
+    <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ReceiverStmContext.cs" />
-    <Compile Include="ReceivingStates\Receiving.cs" />
-    <Compile Include="SenderStates\Sending.cs" />
-    <Compile Include="SenderStates\Waiting.cs" />
-    <Compile Include="SenderStmContext.cs" />
-    <Compile Include="TransportContext.cs" />
-    <Compile Include="TransportStates\Idle.cs" />
-    <Compile Include="TransportStates\SendData.cs" />
+    <Compile Include="SocketListener.cs" />
+    <Compile Include="SocketStates\Established.cs" />
+    <Compile Include="SocketStates\Listen.cs" />
+    <Compile Include="SocketStates\SuperState.cs" />
+    <Compile Include="SocketStates\SynReceived.cs" />
+    <Compile Include="SocketStates\SynSent.cs" />
+    <Compile Include="Socket.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Link\LinkLayer.csproj">

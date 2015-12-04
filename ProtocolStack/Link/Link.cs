@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO.Ports;
+using log4net;
 
 namespace LinkLayer
 {
@@ -18,6 +19,7 @@ namespace LinkLayer
         private readonly IPhysical _physical;
         private readonly int _maxFrameSize;
 
+        private static readonly ILog Logger = LogManager.GetLogger(typeof(Link));
 
         public Link(IDecrypt decrypt, IEncrypt encrypt, IPhysical physical, int maxFrameSize)
         {
@@ -54,13 +56,15 @@ namespace LinkLayer
             }
             catch (ArgumentException)
             {
-
+                Logger.Debug("Invalid Start Char");
+                _physical.ClearBuffer();
                 _decrypt.Reset();
                 return -1;
             }
             
 
             // Timeout for the rest
+            Logger.Debug("Got Start Frame");
             _physical.EnableTimeout();
             try
             {
@@ -70,24 +74,36 @@ namespace LinkLayer
             }
             catch (TimeoutException)
             {
+                Logger.Debug("Timeout");
+                _physical.ClearBuffer();
                 _decrypt.Reset();
                 return -1;
             }
             catch (IndexOutOfRangeException)
             {
+                Logger.Debug("Overflow");
+                _physical.ClearBuffer();
+
                 _decrypt.Reset();
                 return -1;
             }
             catch (ArgumentException)
             {
+                Logger.Debug("Invalid Char");
+                _physical.ClearBuffer();
                 _decrypt.Reset();
                 return -1;
             }
-            
+            Logger.Info("Valid Frame " + _decrypt.BufferSize + " byte(s)");
             return _decrypt.BufferSize;
         }
 
         public int Timeout => _physical.Timeout * _maxFrameSize;
+
+        public void Open()
+        {
+            _physical.Open();
+        }
         public void Close()
         {
             _physical.Close();

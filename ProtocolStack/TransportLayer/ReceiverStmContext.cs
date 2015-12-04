@@ -1,4 +1,5 @@
 ﻿using System;
+using log4net;
 using LinkLayer;
 using TransportLayer.ReceivingStates;
 
@@ -13,6 +14,8 @@ namespace TransportLayer
         private readonly ISequenceGenerator _sequence;
         //State Machine internals
         private ReceiverSuperState _state;
+
+        private static readonly ILog Logger = LogManager.GetLogger(typeof(ReceiverStmContext));
 
         public bool Ready;
 
@@ -42,7 +45,7 @@ namespace TransportLayer
         {
             while (!Ready)
             {
-                Console.WriteLine("Waiting for message");
+                
                 ReceiveMessage();
                 _state.MessageReceived(this);
             }
@@ -53,42 +56,63 @@ namespace TransportLayer
 
         public bool ValidateMessage()
         {
-            Console.WriteLine("Validating Length");
             if (!_message.ValidMessageSize())
+            {
+                Logger.Debug("ValidateMessage\tLength\tFailed");
                 return false;
+            }
+            Logger.Debug("ValidateMessage\tLength\t\tOK");
 
-            Console.WriteLine("Checksum");
             if (!_checksum.VerifyChecksum(_message))
+            {
+                Logger.Debug("ValidateMessage\tChecksum\tFailed");
                 return false;
-
+            }
+            Logger.Debug("ValidateMessage\tChecksum\tOK");
+            Logger.Info("ValidateMessage\tAll\t\tOK");
             return true;
         }
 
         public bool ValidSync()
         {
-            Console.WriteLine("Validating Size");
             if (_message.DataSize != 0)
+            {
+                Logger.Info("ValidSync\t\tSize\tFailed: " + _message.DataSize);
                 return false;
+            }
 
+            Logger.Info("ValidSync\t\tSize\t\tOK");
             return true;
         }
 
         public bool ValidData()
         {
-            Console.WriteLine("Validating Size: " + _message.DataSize);
             if (_message.DataSize <= 0)
+            {
+                Logger.Info("ValidData\t\tSize\t\tFailed: " + _message.DataSize);
                 return false;
+            }
 
+            Logger.Info("ValidData\t\tSize\t\tOK");
             return true;
         }
 
         public bool ValidSequence()
         {
+            if (_message.Sequence == _sequence.Sequence)
+            {
+                Logger.Info("ValidSequence\tSequence\tOK");
+            }
+            else
+            {
+                Logger.Debug($"ValidSequence\tSequence\tFailed Expected [{_sequence.Sequence}] Was [{_message.Sequence}]");
+            }
             return _message.Sequence == _sequence.Sequence;
         }
 
         public void UpdateSequence()
         {
+            Logger.Info($"UpdateSequence: [{_message.Sequence}]");
             _sequence.Sequence = _message.Sequence;
         }
 

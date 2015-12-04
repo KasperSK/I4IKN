@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO.Ports;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO.Ports;
+using log4net;
 
 namespace LinkLayer
 {
@@ -14,6 +10,7 @@ namespace LinkLayer
         private readonly byte[] _buffer;
         private int _bufferEnd;
         private int _bufferPtr;
+        private static readonly ILog Logger = LogManager.GetLogger(typeof(Serial));
 
         public Serial(SerialPort port, int bufferSize, int timeoutmodifier)
         {
@@ -22,8 +19,9 @@ namespace LinkLayer
             _port = port;
             Timeout = timeoutmodifier * (20000 / (port.BaudRate / 12));
             _buffer = new byte[bufferSize];
-            
-            _port.Open();
+
+            Logger.Info("Initialized with port: " + _port.PortName);
+
         }
 
         public void Write(byte[] buffer, int buffersize)
@@ -33,12 +31,22 @@ namespace LinkLayer
 
         public void EnableTimeout()
         {
+            Logger.Debug("Enable Timeout");
             _port.ReadTimeout = Timeout;
         }
 
         public void DisableTimeout()
         {
+            Logger.Debug("Disable Timeout");
             _port.ReadTimeout = SerialPort.InfiniteTimeout;
+        }
+
+        public void ClearBuffer()
+        {
+            Logger.Debug("Cleared " + (_bufferEnd - _bufferPtr + _port.BytesToRead) + " byte(s)");
+            _bufferEnd = 0;
+            _bufferPtr = 0;
+            _port.DiscardInBuffer();
         }
 
         public byte Read()
@@ -52,6 +60,11 @@ namespace LinkLayer
         }
 
         public int Timeout { get; }
+
+        public void Open()
+        {
+            _port.Open();
+        }
         public void Close()
         {
             _port.Close();

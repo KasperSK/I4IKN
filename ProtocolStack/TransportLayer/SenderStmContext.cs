@@ -1,6 +1,9 @@
 using System;
 using System.Threading;
+using log4net;
+using log4net.Repository.Hierarchy;
 using LinkLayer;
+using TransportLayer;
 using TransportLayer.SenderStates;
 
 namespace TransportLayer
@@ -11,8 +14,8 @@ namespace TransportLayer
     {
         //State Machine internals
         private SenderSuperState _state;
-        
 
+        private static readonly ILog Logger = LogManager.GetLogger(typeof(SenderStmContext));
 
         public void SetState(SenderSuperState state)
         {
@@ -72,6 +75,7 @@ namespace TransportLayer
                 while (!Ready)
                 {
                     ReceiveMessage();
+                    ValidateMessage(_reply);
                     _state.ReceivedMessage(this, _reply);
                 }
             }
@@ -173,6 +177,26 @@ namespace TransportLayer
             StopTimer();
         }
 
+        private bool ValidateMessage(Message message)
+        {
+            if (!message.ValidMessageSize())
+            {
+                Logger.Debug("ValidateMessage\tLength\tFailed");
+                return false;
+            }
+            Logger.Debug("ValidateMessage\tLength\t\tOK");
+
+            if (!_checksum.VerifyChecksum(message))
+            {
+                Logger.Debug("ValidateMessage\tChecksum\tFailed");
+                return false;
+            }
+            Logger.Debug("ValidateMessage\tChecksum\tOK");
+            Logger.Info("ValidateMessage\tAll\t\tOK");
+            return true;
+        }
+    
+
         private void StartTimer()
         {
             _timer.Change(_timeout, Timeout.Infinite);
@@ -205,6 +229,21 @@ namespace TransportLayer
         public virtual void ReceivedMessage(SenderStmContext context, Message message)
         {
             
+        }
+
+        public virtual void ReceivedSync(SenderStmContext context)
+        {
+
+        }
+
+        public virtual void ReceivedData(SenderStmContext context)
+        {
+
+        }
+
+        public virtual void ReceivedAck(SenderStmContext context)
+        {
+
         }
 
         public virtual void Timeout(SenderStmContext context)

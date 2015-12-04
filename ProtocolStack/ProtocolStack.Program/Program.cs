@@ -1,5 +1,11 @@
 ﻿using System;
 using System.Threading;
+using log4net.Appender;
+using log4net.Config;
+using log4net.Core;
+using log4net.Filter;
+using log4net.Layout;
+using ProtocolStack.Program.Properties;
 using TransportLayer;
 
 namespace ProtocolStack.Program
@@ -7,11 +13,17 @@ namespace ProtocolStack.Program
 
     public class MyServer
     {
+        private readonly string _port;
+
+        public MyServer(string port)
+        {
+            _port = port;
+        }
         public void Start()
         {
 
             ITransport transport = new Transport();
-            transport.Connect("COM7", 115200, 8);
+            transport.Connect(_port, 115200, 8);
 
             var data = new byte[Transport.MaxMessageDataSize];
             Console.WriteLine("Server up and running");
@@ -34,11 +46,103 @@ namespace ProtocolStack.Program
 
     static class Program
     {
-        
+        private static string SetupCom(string name, string value, bool force)
+        {
+            if (force || value == "COM#")
+            {
+                Console.Write("Enter port for " + name + " ["+value+"]: ");
+                var input = Console.ReadLine() ?? value;
 
+                if (input == "")
+                    input = value;
+
+                value = input;
+
+                if (!value.StartsWith("COM"))
+                    value = "COM" + value;
+            }
+            Console.WriteLine(name + " = " + value);
+            return value;
+        }
+        private static void SetupComs(bool force = false)
+        {
+            Settings.Default.PhyCOM1 = SetupCom("PhyCom1", Settings.Default.PhyCOM1, force);
+            Settings.Default.PhyCOM2 = SetupCom("PhyCom2", Settings.Default.PhyCOM2, force);
+            Settings.Default.VirCOM1 = SetupCom("VirCom1", Settings.Default.VirCOM1, force);
+            Settings.Default.VirCOM2 = SetupCom("VirCom2", Settings.Default.VirCOM2, force);
+            Settings.Default.Save();
+        }
+
+        private static IAppender MakeLog(string name, Level minLevel, Level maxLevel)
+        {
+            var layout = new PatternLayout("[%thread] %-5level %logger - %message %newline");
+            layout.ActivateOptions();
+
+            var nameFilter = new LoggerMatchFilter
+            {
+
+                AcceptOnMatch = true,
+                LoggerToMatch = name,
+                Next = new DenyAllFilter()
+            };
+
+            var levelFilter = new LevelRangeFilter
+            {
+                AcceptOnMatch = false,
+                LevelMin = minLevel,
+                LevelMax = maxLevel,
+                Next = nameFilter
+            };
+
+            var appender = new ConsoleAppender
+            {
+                Layout = layout
+            };
+            appender.AddFilter(levelFilter);
+
+
+
+            return appender;
+
+        }
         static void Main(string[] args)
         {
             
+            var appenders = new []
+            {
+                MakeLog("LinkLayer.Serial", Level.Debug, Level.Fatal),
+                MakeLog("TransportLayer.ReceiverStmContext", Level.Debug, Level.Fatal),
+                MakeLog("LinkLayer.Link", Level.Debug, Level.Fatal)
+            };
+
+
+            BasicConfigurator.Configure(appenders);
+
+            var t = new byte[] {200};
+
+            DataType g = (DataType) t[0];
+
+            Console.WriteLine(Enum.IsDefined(typeof (DataType),g));
+            
+        
+
+            string com1;
+            string com2;
+
+            SetupComs();
+
+            // Set true for Physical
+            if (false)
+            {
+                com1 = Settings.Default.PhyCOM1;
+                com2 = Settings.Default.PhyCOM2;
+            }
+            else
+            {
+                com1 = Settings.Default.VirCOM1;
+                com2 = Settings.Default.VirCOM2;
+            }
+
             var msgSmall = new byte[10] { 75, 65, 76, 76, 69, 66, 97, 108, 108, 101 };
 
             var msgLong = new byte[3000];
@@ -48,7 +152,7 @@ namespace ProtocolStack.Program
                 msgLong[i] = (byte) ((i / 1000) + 97);
             }
             
-            var server = new MyServer();
+            var server = new MyServer(com1);
             var serverThread = new Thread(server.Start);
             serverThread.Start();
 
@@ -64,13 +168,20 @@ namespace ProtocolStack.Program
             */
 
             ITransport client = new Transport();
-            client.Connect("COM8", 115200, 8);
+            client.Connect(com2, 115200, 8);
+            //var link = Factory.GetLink(new SerialPort(com2,115200,Parity.None,8,StopBits.One), 1004, 1);
+            
+            //IPhysical phys;
+            //phys = new Serial(new SerialPort(com2, 115200, Parity.None, 8, StopBits.One),2010,1);
 
             while (true)
             {
                 var key = Console.ReadKey().Key;
                 switch (key)
                 {
+                    //case ConsoleKey.A:
+                    //    phys.Write(new byte[]{65, 75, 75, 75, 65},5);
+                     //   break;
                     case ConsoleKey.W:
                         client.SendMessage(msgSmall, msgSmall.Length);
                         break;

@@ -4,16 +4,17 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{A7DDF2DB-D257-459F-9074-FF0E1DA0F9DE}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{18CB4DA3-EC9B-471E-8753-9B9713C3B264}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>TransportLayer</RootNamespace>
-    <AssemblyName>TransportLayer</AssemblyName>
+    <RootNamespace>NewTest</RootNamespace>
+    <AssemblyName>NewTest</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -23,6 +24,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -45,36 +47,22 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Checksum.cs" />
-    <Compile Include="IChecksum.cs" />
-    <Compile Include="IReceiver.cs" />
-    <Compile Include="ISender.cs" />
-    <Compile Include="ISequenceGenerator.cs" />
-    <Compile Include="ITransport.cs" />
-    <Compile Include="ITransportStm.cs" />
-    <Compile Include="Message.cs" />
-    <Compile Include="ReceivingStates\MissingSync.cs" />
-    <Compile Include="SenderStates\ReSend.cs" />
-    <Compile Include="SequenceGenerator.cs" />
-    <Compile Include="Transport.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ReceiverStmContext.cs" />
-    <Compile Include="ReceivingStates\Receiving.cs" />
-    <Compile Include="SenderStates\Sending.cs" />
-    <Compile Include="SenderStates\Waiting.cs" />
-    <Compile Include="SenderStmContext.cs" />
-    <Compile Include="TransportContext.cs" />
-    <Compile Include="TransportStates\Idle.cs" />
-    <Compile Include="TransportStates\SendData.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Link\LinkLayer.csproj">
       <Project>{8837c51b-2c39-4b33-aa11-c358ff3049ff}</Project>
       <Name>LinkLayer</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
+    <ProjectReference Include="..\Transport\Transport.csproj">
+      <Project>{1f106e87-65d5-4667-9dfb-05f003292cbd}</Project>
+      <Name>Transport</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
