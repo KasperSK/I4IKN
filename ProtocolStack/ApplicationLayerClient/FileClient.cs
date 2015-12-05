@@ -86,7 +86,7 @@ namespace ApplicationLayerClient
             return responce;
         }
 
-        public void GetBigFile(int lenght, string path)
+        public void GetBigFile(long lenght, string path)
         {
             var fileBytes = new byte[Buffer];
             int bytesToRead = Buffer;
@@ -101,7 +101,7 @@ namespace ApplicationLayerClient
                 noBytesRead = 0;
                 if (lenght < Buffer)
                 {
-                    bytesToRead = lenght;
+                    bytesToRead = (int)lenght;
                 }
             }
             file.Close();      
@@ -171,8 +171,8 @@ namespace ApplicationLayerClient
             switch (response[1])
             {
                 case "200":
-                    var getSize = 0;
-                    int.TryParse(response[6], out getSize);
+                    long getSize = 0;
+                    long.TryParse(response[6], out getSize);
                     GetBigFile(getSize, "tophat.jpg");
                     return response[4];
                 case "404":
